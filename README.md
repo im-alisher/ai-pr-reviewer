@@ -9,7 +9,7 @@ Patch** action, shown as copyable text — never applied, committed, or pushed.
 
 ## Preview
 
-![AI Pull Request Reviewer preview](apps/web/src/assets/Screenshot%202026-10-09%20001859.png)
+![AI Pull Request Reviewer preview](apps/web/src/assets/Screenshot%202026-10-09%20005829.png)
 
 ## Features
 
