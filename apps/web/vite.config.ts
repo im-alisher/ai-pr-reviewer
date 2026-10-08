@@ -7,6 +7,10 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
+      '@ai-pr-reviewer/shared': path.resolve(
+        __dirname,
+        '../../packages/shared/src/index.ts',
+      ),
       '@': path.resolve(__dirname, 'src'),
     },
   },

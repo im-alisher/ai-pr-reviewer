@@ -1,6 +1,6 @@
 import type { PullRequestReference } from '../models/pull-request';
 
-const PULL_REQUEST_URL_REGEX =
+export const PULL_REQUEST_URL_REGEX =
   /^https?:\/\/(?:www\.)?github\.com\/([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)\/pull\/(\d+)(?:[/?#][^\s]*)?$/;
 
 export function parsePullRequestUrl(rawUrl: string): PullRequestReference | null {
