@@ -25,6 +25,7 @@ export const REVIEW_SERVICE_DEPS = Symbol('REVIEW_SERVICE_DEPS');
 export interface ReviewServiceDeps {
   githubClient?: GitHubClient;
   registry?: ProviderRegistry;
+  preferredProvider?: string;
 }
 
 @Injectable()
@@ -47,7 +48,7 @@ export class ReviewService {
         apiKey: env.groqApiKey,
         model: env.groqModel,
       });
-    this.preferredProvider = env.aiProvider;
+    this.preferredProvider = deps?.preferredProvider ?? env.aiProvider;
   }
 
   async analyze(prUrl: string): Promise<AnalyzePullRequestResponse> {

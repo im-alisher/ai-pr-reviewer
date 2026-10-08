@@ -2,6 +2,12 @@ import { RISK_THRESHOLDS } from '../constants';
 import type { RiskAssessment, RiskLevel } from '../models/review';
 
 export function clampRiskScore(score: number): number {
+  if (Number.isNaN(score)) {
+    return 0;
+  }
+  if (score === Number.POSITIVE_INFINITY) {
+    return 100;
+  }
   if (!Number.isFinite(score)) {
     return 0;
   }
