@@ -1,1 +1,14 @@
-export const PACKAGE_NAME = '@ai-pr-reviewer/github-client';
+export { GitHubClient, createGitHubClient } from './github-client';
+export type { FetchLike, GitHubClientOptions } from './types';
+export {
+  mapChangedFile,
+  mapCommit,
+  mapPullRequestMetadata,
+} from './mapper';
+export type {
+  RawCommit,
+  RawLabel,
+  RawPullRequest,
+  RawPullRequestFile,
+  RawUser,
+} from './mapper';
