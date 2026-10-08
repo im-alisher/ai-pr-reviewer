@@ -9,6 +9,7 @@
     "build": "rimraf dist && tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@ai-pr-reviewer/ai-review-engine": "1.0.0",
     "@ai-pr-reviewer/shared": "1.0.0"
   },
   "devDependencies": {

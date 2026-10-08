@@ -36,7 +36,7 @@ function toApiClientError(status: number, body: unknown): ApiClientError {
   );
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
     response = await fetch(path, {

@@ -35,6 +35,39 @@ Rules:
 - Keep each array concise: strongest findings first, at most ${LIMITS.maxFindingsPerCategory} entries per category.
 - Never propose applying changes automatically; recommendations are advisory only.`;
 
+export function buildChangedFilesSection(context: PullRequestContext): string {
+  const { files } = context;
+  const sections: string[] = ['## Changed files'];
+  let diffBudget = LIMITS.maxDiffCharsTotal;
+  let omitted = 0;
+
+  for (const file of files) {
+    const header = `### ${file.path} (${file.status}, +${file.additions} -${file.deletions})`;
+    if (file.patch === null) {
+      sections.push(`${header}\n(diff unavailable)`);
+      continue;
+    }
+    if (diffBudget <= 0) {
+      omitted += 1;
+      continue;
+    }
+    const patch =
+      file.patch.length > diffBudget
+        ? file.patch.slice(0, diffBudget)
+        : file.patch;
+    diffBudget -= patch.length;
+    sections.push(`${header}\n\`\`\`diff\n${patch}\n\`\`\``);
+  }
+
+  if (omitted > 0) {
+    sections.push(
+      `(diff for ${omitted} additional file(s) omitted to stay within the analysis budget)`,
+    );
+  }
+
+  return sections.join('\n');
+}
+
 export interface ReviewPromptOptions {
   maxFindingsPerCategory?: number;
 }
@@ -47,7 +80,7 @@ export function buildReviewPrompt(
     options.maxFindingsPerCategory ?? LIMITS.maxFindingsPerCategory,
     LIMITS.maxFindingsPerCategory,
   );
-  const { metadata, files, commits, reference } = context;
+  const { metadata, commits, reference } = context;
 
   const sections: string[] = [];
 
@@ -79,31 +112,7 @@ export function buildReviewPrompt(
     }
   }
 
-  sections.push('', '## Changed files');
-  let diffBudget = LIMITS.maxDiffCharsTotal;
-  let omitted = 0;
-
-  for (const file of files) {
-    const header = `### ${file.path} (${file.status}, +${file.additions} -${file.deletions})`;
-    if (file.patch === null) {
-      sections.push(`${header}\n(diff unavailable)`);
-      continue;
-    }
-    if (diffBudget <= 0) {
-      omitted += 1;
-      continue;
-    }
-    const patch =
-      file.patch.length > diffBudget
-        ? file.patch.slice(0, diffBudget)
-        : file.patch;
-    diffBudget -= patch.length;
-    sections.push(`${header}\n\`\`\`diff\n${patch}\n\`\`\``);
-  }
-
-  if (omitted > 0) {
-    sections.push(`(diff for ${omitted} additional file(s) omitted to stay within the analysis budget)`);
-  }
+  sections.push('', buildChangedFilesSection(context));
 
   sections.push(
     '',

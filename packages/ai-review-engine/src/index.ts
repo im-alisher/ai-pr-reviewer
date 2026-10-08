@@ -13,6 +13,7 @@ export {
 } from './providers/mock-provider';
 export {
   buildReviewPrompt,
+  buildChangedFilesSection,
   REVIEW_SYSTEM_PROMPT,
   type ReviewPromptOptions,
 } from './prompts/review-prompt';

@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { AlertCircle, Sparkles } from 'lucide-react';
+import { AlertCircle, Sparkles, Wand2 } from 'lucide-react';
 import type { AnalyzePullRequestResponse } from '@ai-pr-reviewer/shared';
 import { analyzePullRequest, ApiClientError } from '@/lib/api';
 import { AnalysisForm } from '@/components/analysis-form';
+import { PatchModal } from '@/components/patch-modal';
 import { PullRequestMeta } from '@/components/pull-request-meta';
 import { ReviewReport } from '@/components/review-report';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type AnalysisStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -29,6 +31,7 @@ export default function App() {
   const [status, setStatus] = useState<AnalysisStatus>('idle');
   const [data, setData] = useState<AnalyzePullRequestResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [patchOpen, setPatchOpen] = useState(false);
 
   async function handleSubmit(url: string): Promise<void> {
     setStatus('loading');
@@ -99,6 +102,23 @@ export default function App() {
             <div className="space-y-6">
               <PullRequestMeta data={data} />
               <ReviewReport report={data.report} />
+              <div className="flex justify-center">
+                <Button
+                  size="lg"
+                  className="h-11 px-6"
+                  onClick={() => setPatchOpen(true)}
+                >
+                  <Wand2 />
+                  Generate Patch
+                </Button>
+              </div>
+              <PatchModal
+                key={data.report.generatedAt}
+                open={patchOpen}
+                onOpenChange={setPatchOpen}
+                prUrl={prUrl}
+                report={data.report}
+              />
             </div>
           ) : null}
         </section>
