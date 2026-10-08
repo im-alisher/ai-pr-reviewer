@@ -69,17 +69,31 @@ export class ReviewService {
 
   async generatePatch(
     prUrl: string,
-    rawReport: Record<string, unknown>,
+    rawReport: Record<string, unknown> | null | undefined,
     findingIds?: string[],
   ): Promise<GeneratePatchResponse> {
     const reference = this.parseReference(prUrl);
+    if (
+      rawReport === null ||
+      rawReport === undefined ||
+      typeof rawReport !== 'object' ||
+      Array.isArray(rawReport)
+    ) {
+      throw new ReviewerError(
+        'invalid_report',
+        'report must be a ReviewReport object as returned by POST /api/review/analyze',
+      );
+    }
     const report = this.sanitizeReport(rawReport);
+    const ids = Array.isArray(findingIds)
+      ? findingIds.filter((id): id is string => typeof id === 'string')
+      : undefined;
 
     const context = await this.githubClient.fetchPullRequestContext(reference);
     const provider = this.registry.get(resolveProviderName(this.preferredProvider));
     const generator = new PatchGenerator({ provider });
     const options: GeneratePatchOptions =
-      findingIds && findingIds.length > 0 ? { findingIds } : {};
+      ids && ids.length > 0 ? { findingIds: ids } : {};
 
     const result = await generator.generatePatchSuggestions(
       context,
@@ -91,6 +105,12 @@ export class ReviewService {
   }
 
   private parseReference(prUrl: string) {
+    if (typeof prUrl !== 'string') {
+      throw new ReviewerError(
+        'invalid_pr_url',
+        'prUrl must be a public GitHub pull request URL such as https://github.com/owner/repo/pull/123',
+      );
+    }
     const reference = parsePullRequestUrl(prUrl);
     if (!reference) {
       throw new ReviewerError(

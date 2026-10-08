@@ -107,6 +107,29 @@ describe('ReviewService', () => {
     expect(provider.requests).toHaveLength(0);
   });
 
+  it('rejects non-string prUrls with invalid_pr_url', async () => {
+    const provider = new MockAIProvider();
+    const service = createService(provider);
+
+    await expect(
+      service.analyze(123 as unknown as string),
+    ).rejects.toMatchObject({ code: 'invalid_pr_url', status: 400 });
+    expect(provider.requests).toHaveLength(0);
+  });
+
+  it('rejects missing or malformed reports with invalid_report', async () => {
+    const provider = new MockAIProvider();
+    const service = createService(provider);
+    const prUrl = 'https://github.com/acme/widgets/pull/42';
+
+    for (const bad of [null, undefined, 42, ['x']]) {
+      await expect(
+        service.generatePatch(prUrl, bad as unknown as Record<string, unknown>),
+      ).rejects.toMatchObject({ code: 'invalid_report', status: 400 });
+    }
+    expect(provider.requests).toHaveLength(0);
+  });
+
   it('analyzes a pull request through injected dependencies', async () => {
     const provider = new MockAIProvider();
     const service = createService(provider);

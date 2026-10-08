@@ -100,7 +100,7 @@ shell (or secret manager) when running the API:
 | Variable        | Required | Default                     | Description                                              |
 | --------------- | -------- | --------------------------- | -------------------------------------------------------- |
 | `GROQ_API_KEY`  | Yes      | —                           | Groq API key used by the default AI provider.            |
-| `GROQ_MODEL`    | No       | `llama-3.3-70b-versatile`   | Groq model id used for reviews and patch generation.     |
+| `GROQ_MODEL`    | No       | `openai/gpt-oss-120b`       | Groq model id used for reviews and patch generation.     |
 | `AI_PROVIDER`   | No       | `groq`                      | Provider name to resolve from the registry.              |
 | `GITHUB_TOKEN`  | No       | —                           | Optional GitHub token for higher API rate limits (public API only). |
 | `PORT`          | No       | `3001`                      | API listen port.                                         |

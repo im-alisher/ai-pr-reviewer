@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Inject, Post } from '@nestjs/common';
 import type {
   AnalyzePullRequestResponse,
   GeneratePatchResponse,
@@ -9,7 +9,9 @@ import { ReviewService } from './review.service';
 
 @Controller('review')
 export class ReviewController {
-  constructor(private readonly reviewService: ReviewService) {}
+  constructor(
+    @Inject(ReviewService) private readonly reviewService: ReviewService,
+  ) {}
 
   @Post('analyze')
   @HttpCode(200)

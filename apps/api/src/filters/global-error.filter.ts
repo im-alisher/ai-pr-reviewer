@@ -27,7 +27,7 @@ export class GlobalErrorFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const body = exception.getResponse();
-      const normalized =
+      const payload: Record<string, unknown> =
         typeof body === 'string'
           ? { statusCode: status, code: 'http_error', message: body }
           : {
@@ -35,16 +35,18 @@ export class GlobalErrorFilter implements ExceptionFilter {
               ...(typeof body === 'object' && body !== null ? body : {}),
               statusCode: status,
             };
-      response.status(status).json(normalized);
+      if (Array.isArray(payload.message)) {
+        payload.message = (payload.message as unknown[]).join(' ');
+      }
+      response.status(status).json(payload);
       return;
     }
 
-    const message =
-      exception instanceof Error ? exception.message : 'Unexpected error';
+    console.error('[api] unhandled error:', exception);
     response.status(500).json({
       statusCode: 500,
       code: 'internal_error',
-      message,
+      message: 'Internal server error',
     });
   }
 }

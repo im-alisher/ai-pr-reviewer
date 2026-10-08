@@ -2,7 +2,7 @@ export const GITHUB_API_BASE_URL = 'https://api.github.com';
 
 export const GROQ_API_BASE_URL = 'https://api.groq.com/openai/v1';
 
-export const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
+export const DEFAULT_GROQ_MODEL = 'openai/gpt-oss-120b';
 
 export const PATCH_DISCLAIMER =
   'Suggested patches only. Nothing is applied, committed, or pushed automatically.';

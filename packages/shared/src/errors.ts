@@ -1,5 +1,6 @@
 export type ReviewerErrorCode =
   | 'invalid_pr_url'
+  | 'invalid_report'
   | 'pull_request_not_found'
   | 'github_rate_limited'
   | 'github_error'
@@ -11,6 +12,7 @@ export type ReviewerErrorCode =
 
 const DEFAULT_STATUS_BY_CODE: Record<ReviewerErrorCode, number> = {
   invalid_pr_url: 400,
+  invalid_report: 400,
   pull_request_not_found: 404,
   github_rate_limited: 429,
   github_error: 502,

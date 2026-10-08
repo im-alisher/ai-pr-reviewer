@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+
 export interface AppEnv {
   port: number;
   corsOrigins: string[] | true;
@@ -5,6 +8,24 @@ export interface AppEnv {
   groqApiKey: string | undefined;
   groqModel: string | undefined;
   aiProvider: string | undefined;
+}
+
+export function loadLocalEnvFile(): void {
+  const candidates = [
+    join(process.cwd(), '.env'),
+    join(__dirname, '..', '.env'),
+  ];
+  for (const file of candidates) {
+    if (!existsSync(file)) {
+      continue;
+    }
+    try {
+      process.loadEnvFile(file);
+    } catch {
+      console.warn(`Ignored invalid .env file at ${file}`);
+    }
+    return;
+  }
 }
 
 export function readEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
