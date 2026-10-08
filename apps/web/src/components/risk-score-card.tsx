@@ -1,6 +1,6 @@
+import { useEffect, useState } from 'react';
 import type { RiskAssessment, RiskLevel } from '@ai-pr-reviewer/shared';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -30,18 +30,46 @@ const LEVEL_BAR: Record<RiskLevel, string> = {
   critical: 'bg-destructive',
 };
 
+const LEVEL_GRADIENT: Record<RiskLevel, [string, string]> = {
+  low: ['#34d399', '#059669'],
+  medium: ['#fbbf24', '#d97706'],
+  high: ['#fb923c', '#e11d48'],
+  critical: ['#f87171', '#b91c1c'],
+};
+
+const GAUGE_SIZE = 136;
+const GAUGE_STROKE = 12;
+const GAUGE_RADIUS = (GAUGE_SIZE - GAUGE_STROKE) / 2;
+const GAUGE_CIRCUMFERENCE = 2 * Math.PI * GAUGE_RADIUS;
+
 export function RiskScoreCard({ risk }: { risk: RiskAssessment }) {
-  const levelClass = LEVEL_BADGE[risk.level];
+  const [offset, setOffset] = useState(GAUGE_CIRCUMFERENCE);
+  const [fromColor, toColor] = LEVEL_GRADIENT[risk.level];
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      setOffset(
+        GAUGE_CIRCUMFERENCE * (1 - Math.min(Math.max(risk.score, 0), 100) / 100),
+      );
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [risk.score]);
 
   return (
-    <Card>
+    <Card className="relative overflow-hidden">
+      <div
+        className={cn(
+          'absolute inset-x-0 top-0 h-1 bg-gradient-to-r',
+          LEVEL_BAR[risk.level],
+        )}
+      />
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
           <CardTitle>Risk Score</CardTitle>
           <span
             className={cn(
-              'inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium',
-              levelClass,
+              'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold',
+              LEVEL_BADGE[risk.level],
             )}
           >
             {LEVEL_LABEL[risk.level]}
@@ -49,34 +77,58 @@ export function RiskScoreCard({ risk }: { risk: RiskAssessment }) {
         </div>
         <CardDescription>Overall assessment of this pull request</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-end gap-2">
-          <span className="text-5xl font-bold tabular-nums tracking-tight">
-            {risk.score}
-          </span>
-          <span className="pb-1.5 text-sm text-muted-foreground">/ 100</span>
+      <CardContent className="space-y-5">
+        <div className="flex items-center gap-5">
+          <div className="relative h-[136px] w-[136px] shrink-0">
+            <svg
+              viewBox={`0 0 ${GAUGE_SIZE} ${GAUGE_SIZE}`}
+              className="h-full w-full -rotate-90"
+              role="img"
+              aria-label={`Risk score ${risk.score} out of 100`}
+            >
+              <defs>
+                <linearGradient id="risk-gauge-gradient" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor={fromColor} />
+                  <stop offset="100%" stopColor={toColor} />
+                </linearGradient>
+              </defs>
+              <circle
+                cx={GAUGE_SIZE / 2}
+                cy={GAUGE_SIZE / 2}
+                r={GAUGE_RADIUS}
+                fill="none"
+                strokeWidth={GAUGE_STROKE}
+                className="stroke-muted"
+              />
+              <circle
+                cx={GAUGE_SIZE / 2}
+                cy={GAUGE_SIZE / 2}
+                r={GAUGE_RADIUS}
+                fill="none"
+                stroke="url(#risk-gauge-gradient)"
+                strokeWidth={GAUGE_STROKE}
+                strokeLinecap="round"
+                strokeDasharray={GAUGE_CIRCUMFERENCE}
+                strokeDashoffset={offset}
+                style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.22, 1, 0.36, 1)' }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-4xl font-bold tabular-nums tracking-tight">
+                {risk.score}
+              </span>
+              <span className="text-[11px] text-muted-foreground">/ 100</span>
+            </div>
+          </div>
+          <p className="min-w-0 text-sm leading-relaxed text-muted-foreground">
+            {risk.rationale}
+          </p>
         </div>
-        <div
-          className="h-2 w-full overflow-hidden rounded-full bg-muted"
-          role="progressbar"
-          aria-valuenow={risk.score}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label="Risk score"
-        >
-          <div
-            className={cn('h-full rounded-full transition-all', LEVEL_BAR[risk.level])}
-            style={{ width: `${risk.score}%` }}
-          />
-        </div>
-        <p className="text-sm text-muted-foreground">{risk.rationale}</p>
         {risk.factors.length > 0 ? (
-          <ul className="space-y-1.5 text-sm">
+          <ul className="space-y-2 text-sm">
             {risk.factors.map((factor) => (
-              <li key={factor} className="flex items-start gap-2">
-                <Badge variant="outline" className="mt-0.5 shrink-0">
-                  factor
-                </Badge>
+              <li key={factor} className="flex items-start gap-2.5">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600" />
                 <span className="text-muted-foreground">{factor}</span>
               </li>
             ))}

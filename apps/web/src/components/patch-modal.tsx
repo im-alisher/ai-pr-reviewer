@@ -85,11 +85,16 @@ function PatchModalBody({
   return (
     <div className="space-y-5" data-testid="patch-result">
       {result.suggestions.map((suggestion) => (
-        <section key={suggestion.id} className="space-y-3 rounded-lg border p-4">
+        <section
+          key={suggestion.id}
+          className="space-y-3 rounded-xl border p-4 transition-shadow hover:shadow-md"
+        >
           <header className="space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Wand2 className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2.5">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm shadow-violet-500/30">
+                  <Wand2 className="h-4 w-4" />
+                </span>
                 <h3 className="font-semibold leading-none">
                   {suggestion.title}
                 </h3>
