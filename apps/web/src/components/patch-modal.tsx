@@ -7,7 +7,13 @@ import {
 } from '@ai-pr-reviewer/shared';
 import { ApiClientError } from '@/lib/api';
 import { generatePatch } from '@/lib/patch-api';
+import {
+  resultToDiff,
+  suggestionToDiff,
+  toDiffFilename,
+} from '@/lib/patch-export';
 import { DiffViewer } from '@/components/diff-viewer';
+import { CopyButton, DownloadButton } from '@/components/export-buttons';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -81,9 +87,23 @@ function PatchModalBody({
       {result.suggestions.map((suggestion) => (
         <section key={suggestion.id} className="space-y-3 rounded-lg border p-4">
           <header className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <Wand2 className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-semibold leading-none">{suggestion.title}</h3>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Wand2 className="h-4 w-4 text-muted-foreground" />
+                <h3 className="font-semibold leading-none">
+                  {suggestion.title}
+                </h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <CopyButton
+                  text={suggestionToDiff(suggestion)}
+                  label="Copy patch"
+                />
+                <DownloadButton
+                  filename={toDiffFilename(suggestion.id)}
+                  text={suggestionToDiff(suggestion)}
+                />
+              </div>
             </div>
             {suggestion.targetFindingIds.length > 0 ? (
               <div className="flex flex-wrap gap-1.5">
@@ -109,10 +129,13 @@ function PatchModalBody({
                 <span className="truncate font-mono text-xs font-medium">
                   {file.path}
                 </span>
-                <span className="shrink-0 font-mono text-xs">
-                  <span className="text-success">+{file.additions}</span>{' '}
-                  <span className="text-destructive">−{file.deletions}</span>
-                </span>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="font-mono text-xs">
+                    <span className="text-success">+{file.additions}</span>{' '}
+                    <span className="text-destructive">−{file.deletions}</span>
+                  </span>
+                  <CopyButton text={file.unifiedDiff} label="Copy" />
+                </div>
               </div>
               <DiffViewer diff={file.unifiedDiff} />
             </div>
@@ -188,6 +211,19 @@ export function PatchModal({
         />
 
         <DialogFooter>
+          {status === 'success' && result ? (
+            <>
+              <CopyButton
+                text={resultToDiff(result)}
+                label="Copy all patches"
+              />
+              <DownloadButton
+                filename="ai-pr-reviewer-suggestions.diff"
+                text={resultToDiff(result)}
+                label="Download all"
+              />
+            </>
+          ) : null}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
