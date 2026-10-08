@@ -7,6 +7,10 @@ findings, refactoring suggestions, complexity notes, and a risk score. Patch
 suggestions (unified diffs) are generated only after an explicit **Generate
 Patch** action, shown as copyable text — never applied, committed, or pushed.
 
+## Preview
+
+![AI Pull Request Reviewer preview](apps/web/src/assets/Screenshot%202026-10-09%20001859.png)
+
 ## Features
 
 - **PR analysis** — fetches metadata, changed files, diffs, and commit

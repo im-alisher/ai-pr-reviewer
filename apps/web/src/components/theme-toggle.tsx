@@ -14,7 +14,11 @@ export function ThemeToggle() {
       }
       onClick={toggleTheme}
     >
-      {theme === 'dark' ? <Sun /> : <Moon />}
+      {theme === 'dark' ? (
+        <Sun className="transition-transform duration-300 hover:rotate-45" />
+      ) : (
+        <Moon className="transition-transform duration-300 hover:-rotate-12" />
+      )}
     </Button>
   );
 }
