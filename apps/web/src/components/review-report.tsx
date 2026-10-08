@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   Bug,
   CheckCircle2,
@@ -43,36 +43,71 @@ interface OverviewTile {
   accent: SectionAccent;
 }
 
+function useCountUp(target: number, duration = 700): number {
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (target <= 0) {
+      setValue(0);
+      return;
+    }
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(target * eased));
+      if (progress < 1) {
+        frame = requestAnimationFrame(tick);
+      }
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target, duration]);
+
+  return value;
+}
+
+function OverviewTile({ tile }: { tile: OverviewTile }) {
+  const count = useCountUp(tile.count);
+  const cleared = tile.count === 0;
+
+  return (
+    <div className="flex items-center gap-3 rounded-xl border bg-card p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-violet-400/40 hover:shadow-lg hover:shadow-violet-500/10">
+      <span
+        className={cn(
+          'grid h-10 w-10 shrink-0 place-items-center rounded-lg',
+          cleared ? ACCENT_CHIP.violet : ACCENT_CHIP[tile.accent],
+        )}
+      >
+        {cleared ? (
+          <CheckCircle2 className="h-5 w-5" />
+        ) : (
+          tile.icon
+        )}
+      </span>
+      <div className="min-w-0">
+        <p
+          className={cn(
+            'text-2xl font-bold leading-none tabular-nums',
+            cleared ? 'text-emerald-600 dark:text-emerald-400' : ACCENT_TEXT[tile.accent],
+          )}
+        >
+          {cleared ? '✓' : count}
+        </p>
+        <p className="mt-1.5 truncate text-xs text-muted-foreground">
+          {tile.label}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function OverviewTiles({ tiles }: { tiles: OverviewTile[] }) {
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {tiles.map((tile) => (
-        <div
-          key={tile.label}
-          className="flex items-center gap-3 rounded-xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
-        >
-          <span
-            className={cn(
-              'grid h-10 w-10 shrink-0 place-items-center rounded-lg',
-              tile.count > 0 ? ACCENT_CHIP[tile.accent] : ACCENT_CHIP.violet,
-            )}
-          >
-            {tile.count > 0 ? tile.icon : <CheckCircle2 className="h-5 w-5" />}
-          </span>
-          <div className="min-w-0">
-            <p
-              className={cn(
-                'text-2xl font-bold leading-none tabular-nums',
-                tile.count > 0 && ACCENT_TEXT[tile.accent],
-              )}
-            >
-              {tile.count}
-            </p>
-            <p className="mt-1.5 truncate text-xs text-muted-foreground">
-              {tile.label}
-            </p>
-          </div>
-        </div>
+        <OverviewTile key={tile.label} tile={tile} />
       ))}
     </div>
   );
@@ -170,7 +205,7 @@ export function ReviewReport({ report }: { report: ReviewReport }) {
         ]}
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="reveal grid gap-6 lg:grid-cols-3" style={{ animationDelay: '140ms' }}>
         <Card className="lg:col-span-2">
           <CardHeader>
             <div className="flex items-center gap-2.5">
@@ -204,34 +239,42 @@ export function ReviewReport({ report }: { report: ReviewReport }) {
         <RiskScoreCard risk={report.risk} />
       </div>
 
-      <FindingsSection
-        title="Potential Bugs"
-        description="Logic errors, edge cases, and correctness risks"
-        icon={<Bug className="h-[18px] w-[18px]" />}
-        findings={report.bugs}
-        emptyMessage="No potential bugs detected in the analyzed diff."
-        accent="rose"
-      />
+      <div className="reveal" style={{ animationDelay: '220ms' }}>
+        <FindingsSection
+          title="Potential Bugs"
+          description="Logic errors, edge cases, and correctness risks"
+          icon={<Bug className="h-[18px] w-[18px]" />}
+          findings={report.bugs}
+          emptyMessage="No potential bugs detected in the analyzed diff."
+          accent="rose"
+        />
+      </div>
 
-      <FindingsSection
-        title="Security Findings"
-        description="Vulnerabilities and unsafe practices introduced or touched by this PR"
-        icon={<ShieldAlert className="h-[18px] w-[18px]" />}
-        findings={report.security}
-        emptyMessage="No security findings detected in the analyzed diff."
-        accent="amber"
-      />
+      <div className="reveal" style={{ animationDelay: '280ms' }}>
+        <FindingsSection
+          title="Security Findings"
+          description="Vulnerabilities and unsafe practices introduced or touched by this PR"
+          icon={<ShieldAlert className="h-[18px] w-[18px]" />}
+          findings={report.security}
+          emptyMessage="No security findings detected in the analyzed diff."
+          accent="amber"
+        />
+      </div>
 
-      <FindingsSection
-        title="Refactoring Suggestions"
-        description="Structure, duplication, and readability improvements"
-        icon={<RefreshCw className="h-[18px] w-[18px]" />}
-        findings={report.refactoring}
-        emptyMessage="No refactoring suggestions for this pull request."
-        accent="sky"
-      />
+      <div className="reveal" style={{ animationDelay: '340ms' }}>
+        <FindingsSection
+          title="Refactoring Suggestions"
+          description="Structure, duplication, and readability improvements"
+          icon={<RefreshCw className="h-[18px] w-[18px]" />}
+          findings={report.refactoring}
+          emptyMessage="No refactoring suggestions for this pull request."
+          accent="sky"
+        />
+      </div>
 
-      <ComplexitySection notes={report.complexity} />
+      <div className="reveal" style={{ animationDelay: '400ms' }}>
+        <ComplexitySection notes={report.complexity} />
+      </div>
 
       <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
         <FileCode2 className="h-3.5 w-3.5" />

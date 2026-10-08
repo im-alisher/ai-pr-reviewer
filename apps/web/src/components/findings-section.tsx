@@ -20,6 +20,13 @@ const ACCENT_CHIP: Record<SectionAccent, string> = {
   fuchsia: 'bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400',
 };
 
+const ACCENT_LINE: Record<SectionAccent, string> = {
+  rose: 'bg-gradient-to-r from-rose-400 to-rose-600',
+  amber: 'bg-gradient-to-r from-amber-400 to-amber-600',
+  sky: 'bg-gradient-to-r from-sky-400 to-sky-600',
+  fuchsia: 'bg-gradient-to-r from-fuchsia-400 to-fuchsia-600',
+};
+
 const SEVERITY_BORDER: Record<FindingSeverity, string> = {
   critical: 'border-l-destructive',
   high: 'border-l-destructive/70',
@@ -46,7 +53,11 @@ export function FindingsSection({
   accent,
 }: FindingsSectionProps) {
   return (
-    <Card>
+    <Card className="relative overflow-hidden">
+      <span
+        aria-hidden="true"
+        className={cn('absolute inset-x-0 top-0 h-0.5', ACCENT_LINE[accent])}
+      />
       <CardHeader>
         <div className="flex items-center gap-2.5">
           <span

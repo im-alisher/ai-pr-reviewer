@@ -80,6 +80,11 @@ export function RiskScoreCard({ risk }: { risk: RiskAssessment }) {
       <CardContent className="space-y-5">
         <div className="flex items-center gap-5">
           <div className="relative h-[136px] w-[136px] shrink-0">
+            <span
+              aria-hidden="true"
+              className="absolute inset-5 rounded-full opacity-30 blur-2xl"
+              style={{ background: `linear-gradient(135deg, ${fromColor}, ${toColor})` }}
+            />
             <svg
               viewBox={`0 0 ${GAUGE_SIZE} ${GAUGE_SIZE}`}
               className="h-full w-full -rotate-90"

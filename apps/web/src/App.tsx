@@ -1,5 +1,16 @@
-import { useState } from 'react';
-import { AlertCircle, Bug, Gauge, RefreshCw, ShieldAlert, Sparkles, Wand2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+  AlertCircle,
+  Bug,
+  CheckCircle2,
+  Gauge,
+  Github,
+  Loader2,
+  RefreshCw,
+  ShieldAlert,
+  Sparkles,
+  Wand2,
+} from 'lucide-react';
 import type { AnalyzePullRequestResponse } from '@ai-pr-reviewer/shared';
 import { analyzePullRequest, ApiClientError } from '@/lib/api';
 import { AnalysisForm } from '@/components/analysis-form';
@@ -11,6 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 type AnalysisStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -21,10 +33,82 @@ const HIGHLIGHTS = [
   { icon: Gauge, label: 'Risk score', chip: 'bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400' },
 ] as const;
 
-function AnalysisSkeleton() {
+const ANALYSIS_STEPS = [
+  { icon: Github, text: 'Fetching pull request metadata and diffs…' },
+  { icon: Bug, text: 'Scanning changed files for bugs and risks…' },
+  { icon: ShieldAlert, text: 'Running the AI security review…' },
+  { icon: Sparkles, text: 'Writing your review report…' },
+] as const;
+
+function AnalysisProgress() {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setStep((current) => Math.min(current + 1, ANALYSIS_STEPS.length - 1));
+    }, 2500);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
-    <div className="space-y-4" aria-busy="true" aria-label="Analyzing pull request">
-      <Skeleton className="h-28 w-full rounded-xl" />
+    <div className="space-y-5" aria-busy="true" aria-label="Analyzing pull request">
+      <div className="rounded-2xl border bg-card p-6 shadow-lg shadow-violet-500/5">
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-violet-500/30">
+            <Loader2 className="h-5 w-5 animate-spin" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">Analyzing pull request</p>
+            <p
+              key={step}
+              className="reveal truncate text-sm text-muted-foreground"
+            >
+              {ANALYSIS_STEPS[step].text}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-muted">
+          <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 animate-indeterminate" />
+        </div>
+
+        <ol className="mt-5 space-y-2.5">
+          {ANALYSIS_STEPS.map((item, index) => {
+            const done = index < step;
+            const active = index === step;
+            return (
+              <li
+                key={item.text}
+                className={cn(
+                  'flex items-center gap-2.5 text-sm transition-colors',
+                  done && 'text-muted-foreground',
+                  active && 'font-medium text-foreground',
+                  !done && !active && 'text-muted-foreground/60',
+                )}
+              >
+                <span
+                  className={cn(
+                    'grid h-5 w-5 shrink-0 place-items-center rounded-full',
+                    done && 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+                    active && 'bg-violet-500/15 text-violet-600 dark:text-violet-400',
+                    !done && !active && 'bg-muted',
+                  )}
+                >
+                  {done ? (
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  ) : active ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
+                  )}
+                </span>
+                {item.text}
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-3">
         <Skeleton className="h-44 rounded-xl lg:col-span-2" />
         <Skeleton className="h-44 rounded-xl" />
@@ -35,7 +119,6 @@ function AnalysisSkeleton() {
         <Skeleton className="h-20 rounded-xl" />
         <Skeleton className="h-20 rounded-xl" />
       </div>
-      <Skeleton className="h-56 rounded-xl" />
     </div>
   );
 }
@@ -66,6 +149,14 @@ export default function App() {
     }
   }
 
+  function handleReset(): void {
+    setData(null);
+    setErrorMessage(null);
+    setStatus('idle');
+    setPrUrl('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
@@ -87,10 +178,22 @@ export default function App() {
           </div>
           <ThemeToggle />
         </div>
+        {status === 'loading' ? (
+          <div
+            aria-hidden="true"
+            className="absolute inset-x-0 -bottom-px h-0.5 overflow-hidden"
+          >
+            <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 animate-indeterminate" />
+          </div>
+        ) : null}
       </header>
 
       <main className="mx-auto max-w-5xl px-4 pb-24 pt-12 sm:px-6">
         <section className="relative mb-10 space-y-5 text-center">
+          <div
+            aria-hidden="true"
+            className="bg-dots pointer-events-none absolute inset-x-0 -top-16 -z-10 h-[440px] opacity-50"
+          />
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -top-28 left-1/2 -z-10 h-[380px] w-[760px] -translate-x-1/2"
@@ -149,7 +252,7 @@ export default function App() {
             </Alert>
           ) : null}
 
-          {status === 'loading' ? <AnalysisSkeleton /> : null}
+          {status === 'loading' ? <AnalysisProgress /> : null}
 
           {status === 'success' && data ? (
             <div className="space-y-6">
@@ -159,7 +262,10 @@ export default function App() {
               <div className="reveal" style={{ animationDelay: '80ms' }}>
                 <ReviewReport report={data.report} />
               </div>
-              <div className="reveal flex justify-center" style={{ animationDelay: '160ms' }}>
+              <div
+                className="reveal flex flex-wrap items-center justify-center gap-3"
+                style={{ animationDelay: '160ms' }}
+              >
                 <Button
                   size="lg"
                   className="h-11 px-6 shadow-lg shadow-violet-500/30"
@@ -167,6 +273,15 @@ export default function App() {
                 >
                   <Wand2 />
                   Generate Patch
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-11 px-6"
+                  onClick={handleReset}
+                >
+                  <RefreshCw />
+                  Analyze another PR
                 </Button>
               </div>
               <PatchModal
@@ -181,8 +296,12 @@ export default function App() {
         </section>
       </main>
 
-      <footer className="border-t py-6">
-        <p className="mx-auto max-w-5xl px-4 text-center text-xs text-muted-foreground sm:px-6">
+      <footer className="py-6">
+        <div
+          aria-hidden="true"
+          className="h-px bg-gradient-to-r from-transparent via-violet-500/40 to-transparent"
+        />
+        <p className="mx-auto mt-5 max-w-5xl px-4 text-center text-xs text-muted-foreground sm:px-6">
           Read-only analysis. The reviewer never edits code, branches, or pull
           requests.
         </p>
