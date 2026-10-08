@@ -130,7 +130,7 @@ function PatchModalBody({
 
           {suggestion.files.map((file) => (
             <div key={file.path} className="space-y-2">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/50 px-3 py-2">
                 <span className="truncate font-mono text-xs font-medium">
                   {file.path}
                 </span>

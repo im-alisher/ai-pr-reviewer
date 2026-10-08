@@ -123,7 +123,7 @@ export function PullRequestMeta({ data }: PullRequestMetaProps) {
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="flex items-center gap-2.5 rounded-xl border bg-muted/40 p-3"
+              className="flex items-center gap-2.5 rounded-xl border bg-muted/40 p-3 transition-all hover:-translate-y-0.5 hover:border-violet-400/40 hover:bg-card hover:shadow-md"
             >
               <span
                 className={cn(
