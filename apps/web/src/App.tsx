@@ -106,7 +106,7 @@ export default function App() {
             />
           </div>
 
-          <h1 className="bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl">
+          <h1 className="bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 bg-clip-text pb-1 text-4xl font-bold leading-[1.15] tracking-tight text-transparent sm:text-5xl">
             Review any public pull request with AI
           </h1>
           <p className="mx-auto max-w-2xl text-balance text-muted-foreground">
